@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: osint-weather-db
+    environment:
+      POSTGRES_USER: osint_user
+      POSTGRES_PASSWORD: osint_password
+      POSTGRES_DB: osint_weather
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U osint_user -d osint_weather"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - osint-network
+    restart: unless-stopped
+
+  # Main Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: osint-weather-app
+    environment:
+      # Database
+      DATABASE_URL: postgresql://osint_user:osint_password@postgres:5432/osint_weather
+
+      # API Keys (load from .env file)
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+
+      # Configuration
+      TARGET_CITY: ${TARGET_CITY:-London}
+      TARGET_BRAND: ${TARGET_BRAND:-Allbirds}
+      TIMEZONE: ${TIMEZONE:-UTC}
+
+      # Application
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      # Mount code for development (comment out for production)
+      - ./app:/app/app
+      - ./automation:/app/automation
+      - ./scripts:/app/scripts
+
+      # Persistent data
+      - ./data:/app/data
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - osint-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: osint-weather-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@osint.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - osint-network
+    restart: unless-stopped
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  osint-network:
+    driver: bridge
