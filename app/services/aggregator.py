@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, Any
 from app.services.weather import fetch_weather_data
 from app.services.osint import fetch_osint_data
+from app.services.gemini import analyze_sentiment, analyze_trends
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ async def aggregate_all_data() -> Dict[str, Any]:
         results["error_count"] += 1
 
     # Fetch OSINT data
+    osint_data = None
     try:
         osint_data = await fetch_osint_data()
         results["sources"]["osint"] = {
@@ -67,6 +69,43 @@ async def aggregate_all_data() -> Dict[str, Any]:
             "error": str(e)
         }
         results["error_count"] += 1
+
+    # Analyze OSINT data with Gemini (if OSINT data was successfully fetched)
+    if osint_data and len(osint_data) > 0:
+        try:
+            # Format OSINT posts for Gemini analysis
+            osint_text = "\n\n".join([
+                f"Post {i+1}:\nTitle: {post.get('title', '')}\nText: {post.get('text', '')}"
+                for i, post in enumerate(osint_data)
+            ])
+
+            # Analyze sentiment
+            sentiment_summary = analyze_sentiment(osint_text)
+
+            # Analyze trends
+            news_summary = analyze_trends(osint_text)
+
+            results["sources"]["gemini"] = {
+                "status": "success",
+                "sentiment_summary": sentiment_summary,
+                "news_summary": news_summary
+            }
+            results["success_count"] += 1
+
+            logger.info("Gemini analysis completed successfully")
+        except Exception as e:
+            logger.error(f"Error analyzing with Gemini: {str(e)}", exc_info=True)
+            results["sources"]["gemini"] = {
+                "status": "error",
+                "error": str(e)
+            }
+            results["error_count"] += 1
+    else:
+        logger.warning("Skipping Gemini analysis - no OSINT data available")
+        results["sources"]["gemini"] = {
+            "status": "skipped",
+            "reason": "No OSINT data available"
+        }
 
     end_time = datetime.now()
     results["duration_seconds"] = (end_time - start_time).total_seconds()
