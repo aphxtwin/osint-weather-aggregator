@@ -35,3 +35,17 @@ class DataRecordRead(BaseModel):
     raw_gemini_response: Optional[str] = None  # JSON string (optional)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DataRecordReadLatest(BaseModel):
+    """Schema for reading latest data record (excludes raw fields)."""
+    id: int
+    aggregation_timestamp_utc: datetime
+    city_name: str
+    current_temperature_c: float
+    brand_name: str
+    sentiment_summary: str
+    news_summary: str
+    popularity_score: Optional[float] = None
+
+    model_config = ConfigDict(from_attributes=True)
