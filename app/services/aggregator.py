@@ -33,7 +33,8 @@ async def aggregate_all_data() -> Dict[str, Any]:
         weather_data = await fetch_weather_data()
         results["sources"]["weather"] = {
             "status": "success",
-            "records": len(weather_data) if weather_data else 0
+            "records": len(weather_data) if weather_data else 0,
+            "data": weather_data
         }
         results["success_count"] += 1
         results["total_records"] += len(weather_data) if weather_data else 0
@@ -52,7 +53,8 @@ async def aggregate_all_data() -> Dict[str, Any]:
         osint_data = await fetch_osint_data()
         results["sources"]["osint"] = {
             "status": "success",
-            "records": len(osint_data) if osint_data else 0
+            "records": len(osint_data) if osint_data else 0,
+            "data": osint_data
         }
         results["success_count"] += 1
         results["total_records"] += len(osint_data) if osint_data else 0

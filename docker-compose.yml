@@ -38,7 +38,7 @@ services:
       WEATHER_API_KEY: ${WEATHER_API_KEY}
 
       # Configuration
-      TARGET_CITY: ${TARGET_CITY:-London}
+      TARGET_CITY: ${TARGET_CITY:-Tel Aviv Yafo}
       TARGET_BRAND: ${TARGET_BRAND:-Allbirds}
       TIMEZONE: ${TIMEZONE:-UTC}
 
