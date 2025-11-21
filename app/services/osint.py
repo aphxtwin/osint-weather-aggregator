@@ -1,25 +1,55 @@
 """
-OSINT data fetching service.
-Stub implementation - to be implemented with actual OSINT sources.
+Minimal OSINT data fetching service using Reddit Search API.
+Only fetches recent post titles + selftext as required by the assignment.
 """
+
+import httpx
 import logging
 from typing import List, Dict, Any
+from app.config import REDDIT_SEARCH_QUERY, REDDIT_SEARCH_LIMIT, REDDIT_SEARCH_SORT
 
 logger = logging.getLogger(__name__)
+
+REDDIT_SEARCH_URL = "https://www.reddit.com/r/all/search.json"
 
 
 async def fetch_osint_data() -> List[Dict[str, Any]]:
     """
-    Fetch OSINT data from configured sources.
+    Fetch minimal OSINT data from Reddit search API.
 
     Returns:
-        List of OSINT data records
-
-    Note:
-        This is a stub implementation. Actual OSINT source integration
-        should be implemented here.
+        A list of dicts containing only the text snippets needed for LLM processing.
     """
-    logger.info("Fetching OSINT data (stub implementation)")
+    logger.info(f"Fetching Reddit OSINT data for query: {REDDIT_SEARCH_QUERY}")
 
-    # Return empty list for now - implement actual data fetching later
-    return []
+    params = {
+        "q": REDDIT_SEARCH_QUERY,
+        "limit": REDDIT_SEARCH_LIMIT,
+        "sort": REDDIT_SEARCH_SORT,
+        "restrict_sr": False,
+    }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.get(REDDIT_SEARCH_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+    posts_raw = data.get("data", {}).get("children", [])
+
+    # Minimal mapping of required info
+    posts = []
+    for item in posts_raw:
+        if item.get("kind") != "t3":  # skip non-posts
+            continue
+
+        info = item.get("data", {})
+
+        # Minimal required fields for the assignment
+        posts.append({
+            "title": info.get("title"),
+            "text": info.get("selftext") or "",
+        })
+
+    logger.info(f"Fetched {len(posts)} Reddit posts")
+
+    return posts

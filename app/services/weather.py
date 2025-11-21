@@ -12,6 +12,39 @@ logger = logging.getLogger(__name__)
 
 OPEN_METEO_API_URL = "https://api.open-meteo.com/v1/forecast"
 
+# WMO Weather interpretation codes
+WEATHER_CODE_MAP = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Foggy",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Slight snow fall",
+    73: "Moderate snow fall",
+    75: "Heavy snow fall",
+    77: "Snow grains",
+    80: "Slight rain showers",
+    81: "Moderate rain showers",
+    82: "Violent rain showers",
+    85: "Slight snow showers",
+    86: "Heavy snow showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm with slight hail",
+    99: "Thunderstorm with heavy hail"
+}
+
+
+def get_weather_description(code: int) -> str:
+    """Convert WMO weather code to description."""
+    return WEATHER_CODE_MAP.get(code, f"Unknown ({code})")
+
 
 async def fetch_weather_data() -> List[Dict[str, Any]]:
     """
@@ -39,13 +72,14 @@ async def fetch_weather_data() -> List[Dict[str, Any]]:
             data = response.json()
 
         current = data.get("current", {})
+        weather_code = current.get("weather_code")
 
         weather_record = {
             "source": "open-meteo",
             "city": TARGET_CITY,
             "timestamp": datetime.now().isoformat(),
             "temperature_c": current.get("temperature_2m"),
-            "weather_description": current.get("weather_code")
+            "weather_description": get_weather_description(weather_code) if weather_code is not None else "Unknown"
         }
 
         logger.info(f"Weather data fetched successfully: {weather_record['temperature_c']}°C in {TARGET_CITY}")

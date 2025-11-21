@@ -53,7 +53,8 @@ async def aggregate_all_data() -> Dict[str, Any]:
         osint_data = await fetch_osint_data()
         results["sources"]["osint"] = {
             "status": "success",
-            "records": len(osint_data) if osint_data else 0
+            "records": len(osint_data) if osint_data else 0,
+            "data": osint_data
         }
         results["success_count"] += 1
         results["total_records"] += len(osint_data) if osint_data else 0

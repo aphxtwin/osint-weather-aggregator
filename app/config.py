@@ -15,3 +15,8 @@ WEATHER_API_KEY = os.getenv("WEATHER_API_KEY", "")
 # Application settings
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Reddit OSINT settings
+REDDIT_SEARCH_QUERY = "gymshark"
+REDDIT_SEARCH_LIMIT = 10
+REDDIT_SEARCH_SORT = "new"
