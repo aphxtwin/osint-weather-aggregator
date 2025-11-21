@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 import logging
 from app.api.endpoints import router
 from automation.scheduler import start_scheduler, stop_scheduler, get_scheduled_jobs
+from app.database import init_db
 
 # Configure logging
 logging.basicConfig(
@@ -24,6 +25,10 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting OSINT Weather Aggregator application...")
+
+    # Initialize database
+    init_db()
+    logger.info("Database initialized")
 
     # Start scheduler
     start_scheduler()
