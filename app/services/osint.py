@@ -11,14 +11,15 @@ from app.config import REDDIT_SEARCH_QUERY, REDDIT_SEARCH_LIMIT, REDDIT_SEARCH_S
 logger = logging.getLogger(__name__)
 
 REDDIT_SEARCH_URL = "https://www.reddit.com/r/all/search.json"
+BRAND_NAME = "Gymshark"  # Hardcoded brand name
 
 
-async def fetch_osint_data() -> List[Dict[str, Any]]:
+async def fetch_osint_data() -> Dict[str, Any]:
     """
     Fetch minimal OSINT data from Reddit search API.
 
     Returns:
-        A list of dicts containing only the text snippets needed for LLM processing.
+        A dict containing brand_name and posts list with text snippets for LLM processing.
     """
     logger.info(f"Fetching Reddit OSINT data for query: {REDDIT_SEARCH_QUERY}")
 
@@ -50,6 +51,9 @@ async def fetch_osint_data() -> List[Dict[str, Any]]:
             "text": info.get("selftext") or "",
         })
 
-    logger.info(f"Fetched {len(posts)} Reddit posts")
+    logger.info(f"Fetched {len(posts)} Reddit posts for {BRAND_NAME}")
 
-    return posts
+    return {
+        "brand_name": BRAND_NAME,
+        "posts": posts
+    }

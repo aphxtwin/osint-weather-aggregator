@@ -7,6 +7,9 @@ from typing import Dict, Any
 from app.services.weather import fetch_weather_data
 from app.services.osint import fetch_osint_data
 from app.services.gemini import analyze_sentiment, analyze_trends
+from app.services.data_transformer import transform_aggregate_to_record
+from app.database import SessionLocal
+from app.crud.data_record import create_data_record
 
 logger = logging.getLogger(__name__)
 
@@ -71,12 +74,12 @@ async def aggregate_all_data() -> Dict[str, Any]:
         results["error_count"] += 1
 
     # Analyze OSINT data with Gemini (if OSINT data was successfully fetched)
-    if osint_data and len(osint_data) > 0:
+    if osint_data and len(osint_data.get("posts", [])) > 0:
         try:
             # Format OSINT posts for Gemini analysis
             osint_text = "\n\n".join([
                 f"Post {i+1}:\nTitle: {post.get('title', '')}\nText: {post.get('text', '')}"
-                for i, post in enumerate(osint_data)
+                for i, post in enumerate(osint_data["posts"])
             ])
 
             # Analyze sentiment
@@ -112,5 +115,29 @@ async def aggregate_all_data() -> Dict[str, Any]:
 
     logger.info(f"Data aggregation completed: {results['success_count']} sources successful, "
                 f"{results['error_count']} errors, {results['total_records']} total records")
+
+    # Transform aggregated data into database record format and save to database
+    transformed_record = None
+    db_record_id = None
+    if results["success_count"] >= 2:  # Need at least weather and OSINT data
+        try:
+            transformed_record = transform_aggregate_to_record(results)
+            logger.info(f"Data transformed successfully for database insertion: {transformed_record.city_name}, {transformed_record.brand_name}")
+
+            # Save to database
+            db = SessionLocal()
+            try:
+                db_record = create_data_record(db, transformed_record)
+                db_record_id = db_record.id
+                logger.info(f"Successfully saved record to database with ID: {db_record_id}")
+            finally:
+                db.close()
+
+        except Exception as e:
+            logger.error(f"Error transforming or saving data: {str(e)}", exc_info=True)
+
+    # Add transformed record to results for inspection
+    results["transformed_record"] = transformed_record.dict() if transformed_record else None
+    results["db_record_id"] = db_record_id
 
     return results
