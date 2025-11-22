@@ -39,3 +39,25 @@ Title: {post_title}
 Text: {post_text}
 ...
 ```
+
+## OSINT Sources
+
+### Reddit
+**API Endpoint:** Reddit Search API (`/r/all/search.json`)
+
+**Data Collected:**
+- Post titles
+- Post selftext/body content
+
+**Configuration** (via environment variables):
+- `REDDIT_SEARCH_QUERY` - Search query (default: "gymshark")
+- `REDDIT_SEARCH_LIMIT` - Number of posts to fetch (default: 10)
+- `REDDIT_SEARCH_SORT` - Sort order: "new", "hot", "top", "relevance" (default: "new")
+
+**Why Reddit:**
+- Public API with no authentication required for read-only access
+- Rich user-generated content with brand mentions
+- Recent discussions provide real-time sentiment
+- Covers multiple communities and perspectives
+
+**Rate Limits:** Reddit's public JSON API has informal rate limits (~60 requests/minute). Our once-per-day scheduling stays well within limits.
