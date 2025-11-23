@@ -177,7 +177,59 @@ curl http://localhost:8000/health
 
 ## Daily Automation with n8n
 
-This project uses **n8n** (self-hosted workflow automation) for daily data aggregation.
+OSINT Weather Aggregation Automation
+
+This workflow provides a complete end-to-end automation pipeline for refreshing OSINT and weather data inside the microservice.
+
+Overview
+
+The workflow can be triggered in two ways:
+
+Manually, through a Webhook Trigger
+
+Automatically, through a Schedule Trigger (e.g., daily at midnight)
+
+Both triggers flow into the same HTTP Request node, which contacts the backend aggregation endpoint.
+
+Components
+1. Webhook Trigger
+
+Allows manual execution of the workflow.
+Useful for testing or forcing a refresh on demand.
+
+2. Schedule Trigger
+
+Production configuration: daily at midnight
+
+3. HTTP Request
+
+This node sends a POST request into the backend container:
+
+POST http://osint-weather-aggregator_app:8000/api/v1/data/refresh
+
+
+This internal Docker hostname (osint-weather-aggregator_app) ensures n8n can reach the FastAPI microservice from inside the same Docker network.
+
+The endpoint executes the full aggregation pipeline:
+
+1. fetch weather data
+
+2. collect OSINT mentions
+
+3. run Gemini summarization
+
+4. save the record to the database
+
+## How the Automation Works
+
+Either the Webhook Trigger or the Schedule Trigger activates the workflow.
+
+-The trigger emits one item into the HTTP Request node.
+
+-The HTTP Request calls the microservice endpoint.
+
+-The backend performs the entire aggregation and returns the final JSON response.
+
+-The workflow completes without any manual steps.
 
 ![n8n Workflow](docs/images/workflow.png)
-
