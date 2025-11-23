@@ -50,7 +50,6 @@ services:
       - ./scripts:/app/scripts
 
       # Persistent data
-      - ./data:/app/data
       - ./logs:/app/logs
     ports:
       - "8000:8000"

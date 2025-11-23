@@ -16,7 +16,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY", "")
 
 # Database
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/aggregator.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://osint_user:osint_password@postgres:5432/osint_weather")
 
 # Application settings
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")

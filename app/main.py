@@ -5,7 +5,6 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
 from app.api.endpoints import router
-from automation.scheduler import start_scheduler, stop_scheduler, get_scheduled_jobs
 from app.database import init_db
 
 # Configure logging
@@ -29,22 +28,12 @@ async def lifespan(app: FastAPI):
     # Initialize database
     init_db()
     logger.info("Database initialized")
-
-    # Start scheduler
-    start_scheduler()
-    logger.info("Scheduler started - jobs will run every 8 hours")
-
-    # Log scheduled jobs
-    jobs = get_scheduled_jobs()
-    for job in jobs:
-        logger.info(f"Scheduled job: {job['name']} (ID: {job['id']}) - Next run: {job['next_run']}")
+    logger.info("Daily automation managed by n8n - see README for setup")
 
     yield
 
     # Shutdown
     logger.info("Shutting down application...")
-    stop_scheduler()
-    logger.info("Scheduler stopped")
 
 
 app = FastAPI(
@@ -71,11 +60,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    jobs = get_scheduled_jobs()
     return {
         "status": "healthy",
-        "scheduler": {
-            "active": len(jobs) > 0,
-            "jobs": jobs
-        }
+        "automation": "n8n (external)"
     }
