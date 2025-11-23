@@ -28,8 +28,8 @@ RUN pip install --upgrade pip && \
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p /app/data /app/logs && \
-    chmod -R 755 /app/data /app/logs
+RUN mkdir -p /app/logs && \
+    chmod -R 755 /app/logs
 
 # Expose port for FastAPI
 EXPOSE 8000

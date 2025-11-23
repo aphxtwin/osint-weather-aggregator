@@ -11,7 +11,7 @@ from app.schemas.data_record import DataRecordReadLatest
 router = APIRouter()
 
 
-@router.post("/aggregate")
+@router.post("/data/refresh")
 async def trigger_aggregation():
     """
     Manually trigger data aggregation from all sources.
