@@ -81,7 +81,99 @@ Text: {post_text}
 **Why Reddit:**
 - Public API with no authentication required for read-only access
 
+## API Examples
 
+### Refresh Data (POST /api/v1/data/refresh)
+
+Triggers the full data aggregation pipeline: fetches weather, OSINT data, runs Gemini analysis, and stores results.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8000/api/v1/data/refresh
+```
+
+**Response:**
+```json
+{
+  "timestamp": "2025-11-23T01:24:09.725418",
+  "sources": {
+    "weather": {
+      "status": "success",
+      "records": 1,
+      "data": [{
+        "source": "open-meteo",
+        "city": "Tel Aviv Yafo",
+        "temperature_c": 24.5,
+        "weather_description": "Clear sky"
+      }]
+    },
+    "osint": {
+      "status": "success",
+      "records": 2,
+      "data": {
+        "brand_name": "Gymshark",
+        "posts": [
+          {
+            "title": "Quick 2-minute..",
+            "text": "Hey everyone — I'm doing a short survey..."
+          },
+          {
+            "title": "Onyx V5 Singlet",
+            "text": "Ngl the singlet looks really cool..."
+          }
+        ]
+      }
+    },
+    "gemini": {
+      "status": "success",
+      "sentiment_summary": "Public sentiment ....",
+      "news_summary": "Gymshark i..."
+    }
+  },
+  "success_count": 3,
+  "error_count": 0,
+  "duration_seconds": 17.32
+}
+```
+
+### Get Latest Data (GET /api/v1/data/latest)
+
+Retrieves the most recent aggregated data record from the database.
+
+**Request:**
+```bash
+curl http://localhost:8000/api/v1/data/latest
+```
+
+**Response:**
+```json
+{
+  "id": 2,
+  "aggregation_timestamp_utc": "2025-11-23T01:24:27.060929",
+  "city_name": "Tel Aviv Yafo",
+  "current_temperature_c": 24.5,
+  "brand_name": "Gymshark",
+  "sentiment_summary": "Public sentiment for the brand is mixed,...",
+  "news_summary": "Gymshark is actively ...",
+  "popularity_score": null
+}
+```
+
+### Health Check (GET /health)
+
+Simple endpoint to verify the service is running.
+
+**Request:**
+```bash
+curl http://localhost:8000/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy"
+}
+```
 
 ## Daily Automation with n8n
 
